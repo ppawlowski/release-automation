@@ -6,6 +6,10 @@
   "always-update": true,
   "skip-github-release": false, 
   "skip-changelog": false,
-  "skip-pull-request": false
-
+  "skip-pull-request": false,
+  "packages": {
+    ".": {
+      "release-type": "node"
+    }
+  }
 }

@@ -7,3 +7,4 @@ console.log("This is fix 1.");
 console.log("This is feature 5.");
 console.log("This is feature 6.");
 console.log("This is fix 2.");
+console.log("This is fix 3.");

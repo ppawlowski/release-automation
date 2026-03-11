@@ -1,0 +1,22 @@
+{
+  "name": "release-automation",
+  "version": "1.0.0",
+  "description": "Basic Node.js starter project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"No tests yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ppawlowski/release-automation.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ppawlowski/release-automation/issues"
+  },
+  "homepage": "https://github.com/ppawlowski/release-automation#readme"
+}

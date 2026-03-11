@@ -3,5 +3,9 @@
   "release-type": "node",
   "include-component-in-tag": false,
   "pull-request-title-pattern": "Release ${version}",
-  "always-update": true
+  "always-update": true,
+  "skip-github-release": false, 
+  "skip-changelog": false,
+  "skip-pull-request": false
+
 }

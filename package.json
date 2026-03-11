@@ -1,6 +1,6 @@
 {
   "name": "release-automation",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "description": "Basic Node.js starter project",
   "main": "index.js",
   "scripts": {

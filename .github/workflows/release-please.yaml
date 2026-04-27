@@ -13,7 +13,6 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    if: false
     steps:
       - name: Run Release Please
         id: rp

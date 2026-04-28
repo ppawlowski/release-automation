@@ -14,3 +14,4 @@ jobs:
         with:
           script: |
             console.log("Hello from reusable workflow 2!")
+            console.log(Error("This is an error message from reusable workflow 2"))

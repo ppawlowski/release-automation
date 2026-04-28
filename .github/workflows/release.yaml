@@ -28,23 +28,24 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Compute next version
-        id: bump
-        uses: orhun/git-cliff-action@v4
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
         with:
-          config: cliff.toml
-          args: >-
-            --include-path ${{ matrix.component.path }}
-            --tag-pattern ^${{ matrix.component.name }}/v
-            --bumped-version
+          tool: git-cliff
 
       - name: Decide whether to release
         id: decide
         env:
-          NEW_VERSION: ${{ steps.bump.outputs.version }}
           COMPONENT: ${{ matrix.component.name }}
+          INCLUDE_PATH: ${{ matrix.component.path }}
         run: |
           set -euo pipefail
+          NEW_VERSION=$(git-cliff \
+            --config cliff.toml \
+            --include-path "$INCLUDE_PATH" \
+            --tag-pattern "^${COMPONENT}/v" \
+            --bumped-version)
+          echo "git-cliff output: ${NEW_VERSION:-<empty>}"
           VERSION="${NEW_VERSION#${COMPONENT}/}"
           VERSION="${VERSION#v}"
           LATEST=$(git tag -l "${COMPONENT}/v*" --sort=-v:refname | head -n1 || true)

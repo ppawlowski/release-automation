@@ -1,5 +1,5 @@
 {
-  ".github/workflows/reusable-workflow-1.yaml": "1.0.0",
-  ".github/workflows/reusable-workflow-2.yaml": "1.0.0",
+  "release/reusable-workflow-1": "1.0.0",
+  "release/reusable-workflow-2": "1.0.0",
   "actions/npm_test": "1.0.0"
 }

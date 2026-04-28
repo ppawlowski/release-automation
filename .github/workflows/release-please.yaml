@@ -1,5 +1,5 @@
 name: Prepare release
-
+# comment: This workflow is triggered by release-please when it creates a release PR. It fast-forwards major/minor floats to the new release commit, so that they can be used as base for future releases.
 on:
   push:
     branches: [main]

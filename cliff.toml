@@ -1,0 +1,35 @@
+[changelog]
+header = ""
+body = """
+## {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }}{% if commit.scope %} *(scope: {{ commit.scope }})*{% endif %} ({{ commit.id | truncate(length=7, end="") }})
+{%- endfor %}
+{% endfor %}
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+require_conventional = false
+filter_commits = true
+commit_parsers = [
+  { message = "^feat",     group = "Features" },
+  { message = "^fix",      group = "Bug Fixes" },
+  { message = "^perf",     group = "Performance" },
+  { message = "^revert",   group = "Reverts" },
+  { message = "^docs",     group = "Documentation" },
+  { message = "^refactor", group = "Refactor" },
+  { message = "^chore",    group = "Chores" },
+  { message = "^ci",       skip  = true },
+  { message = "^build",    skip  = true },
+  { message = "^test",     skip  = true },
+  { message = "^style",    skip  = true },
+]
+
+[bump]
+features_always_bump_minor = true
+breaking_always_bump_major = true

@@ -21,13 +21,13 @@
     { "type": "ci", "section": "Continuous Integration", "hidden": true }
   ],
   "packages": {
-    ".github/workflows/build_container_image": {
-      "component": "build_container_image",
-      "include-paths": [".github/workflows/build_container_image.yml"]
+    "release/reusable-workflow-1": {
+      "component": "reusable-workflow-1",
+      "include-paths": [".github/workflows/reusable-workflow-1.yaml"]
     },
-    ".github/workflows/build_node_package": {
-      "component": "build_node_package",
-      "include-paths": [".github/workflows/build_node_package.yml"]
+    "release/reusable-workflow-2": {
+      "component": "reusable-workflow-2",
+      "include-paths": [".github/workflows/reusable-workflow-2.yaml"]
     },
     "actions/npm_test": {
       "component": "npm_test"

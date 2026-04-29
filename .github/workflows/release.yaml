@@ -22,17 +22,12 @@ jobs:
         component:
           - { name: reusable-workflow-1, path: .github/workflows/reusable-workflow-1.yaml }
           - { name: reusable-workflow-2, path: .github/workflows/reusable-workflow-2.yaml }
-          - { name: npm_test,            path: 'actions/npm_test/**' }
+          - { name: npm_test,            path: actions/npm_test }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
-
-      - name: Install git-cliff
-        uses: taiki-e/install-action@v2
-        with:
-          tool: git-cliff
 
       - name: Decide whether to release
         id: decide
@@ -41,25 +36,62 @@ jobs:
           INCLUDE_PATH: ${{ matrix.component.path }}
         run: |
           set -euo pipefail
-          NEW_VERSION=$(git-cliff \
-            --config cliff.toml \
-            --include-path "$INCLUDE_PATH" \
-            --tag-pattern "^${COMPONENT}/v" \
-            --bumped-version)
-          echo "git-cliff output: ${NEW_VERSION:-<empty>}"
-          VERSION="${NEW_VERSION#${COMPONENT}/}"
-          VERSION="${VERSION#v}"
-          LATEST=$(git tag -l "${COMPONENT}/v*" --sort=-v:refname | head -n1 || true)
-          NEW_TAG="${COMPONENT}/v${VERSION}"
-          if [ -z "$VERSION" ] || [ "$NEW_TAG" = "$LATEST" ]; then
-            echo "No release needed for ${COMPONENT} (latest=${LATEST:-<none>}, computed=${NEW_TAG})"
-            echo "release=false" >> "$GITHUB_OUTPUT"
+
+          LATEST_TAG=$(git tag -l "${COMPONENT}/v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1 || true)
+          if [ -z "$LATEST_TAG" ]; then
+            CURRENT_VER="0.0.0"
+            RANGE="HEAD"
+            echo "No previous tag found for ${COMPONENT}, starting from ${CURRENT_VER}"
           else
-            echo "Will release ${NEW_TAG} (previous=${LATEST:-<none>})"
-            echo "release=true"        >> "$GITHUB_OUTPUT"
-            echo "tag=${NEW_TAG}"      >> "$GITHUB_OUTPUT"
-            echo "version=${VERSION}"  >> "$GITHUB_OUTPUT"
+            CURRENT_VER="${LATEST_TAG#${COMPONENT}/v}"
+            RANGE="${LATEST_TAG}..HEAD"
+            echo "Current version: ${CURRENT_VER} (from tag ${LATEST_TAG})"
           fi
+
+          mapfile -t SUBJECTS < <(git log "$RANGE" --first-parent --format='%s' -- "$INCLUDE_PATH")
+          echo "Found ${#SUBJECTS[@]} commits affecting ${INCLUDE_PATH} since ${LATEST_TAG:-<initial>}"
+
+          BUMP=""
+          for subject in "${SUBJECTS[@]}"; do
+            [ -z "$subject" ] && continue
+            echo "  - ${subject}"
+            if echo "$subject" | grep -qE '^[a-zA-Z]+(\([^)]+\))?!:'; then
+              echo "  → BREAKING CHANGE found in: ${subject}"
+              echo "  → Major bump triggered by: ${subject}"
+              BUMP="major"
+              break
+            fi
+            TYPE=$(echo "$subject" | sed -E 's/^([a-zA-Z]+).*/\1/')
+            case "$TYPE" in
+              feat)
+                if [ "$BUMP" != "minor" ]; then
+                  echo "  → Minor bump triggered by: ${subject}"
+                  BUMP="minor"
+                fi
+                ;;
+              fix|perf|chore|docs|refactor|revert)
+                [ -z "$BUMP" ] && BUMP="patch"
+                ;;
+            esac
+          done
+
+          if [ -z "$BUMP" ]; then
+            echo "No release needed for ${COMPONENT} (latest=${LATEST_TAG:-<none>})"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IFS='.' read -r MAJ MIN PAT <<< "$CURRENT_VER"
+          case "$BUMP" in
+            major) NEW_VER="$((MAJ+1)).0.0" ;;
+            minor) NEW_VER="${MAJ}.$((MIN+1)).0" ;;
+            patch) NEW_VER="${MAJ}.${MIN}.$((PAT+1))" ;;
+          esac
+          NEW_TAG="${COMPONENT}/v${NEW_VER}"
+          echo "Will release ${NEW_TAG} from ${LATEST_TAG:-<initial>} (bump=${BUMP})"
+          echo "release=true"     >> "$GITHUB_OUTPUT"
+          echo "tag=${NEW_TAG}"   >> "$GITHUB_OUTPUT"
+          echo "version=${NEW_VER}" >> "$GITHUB_OUTPUT"
 
       - name: Tag
         if: steps.decide.outputs.release == 'true'
